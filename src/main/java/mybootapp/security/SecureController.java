@@ -1,48 +1,44 @@
 package mybootapp.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
 
-// Indicates that this class is a Spring MVC controller.
-@Controller
-// Maps all requests that start with "/secure" to methods in this controller.
-@RequestMapping("/secure")
-public class SecureController {
+// Marque cette classe comme un composant service géré par Spring.
+// Spring va créer une instance singleton de cette classe et l'injecter là où elle est nécessaire.
+@Service
+public class SecureService {
 
-    // Automatically injects an instance of SecureService.
-    @Autowired
-    private SecureService ss;
-
-    // A quick example of a method secured at the service layer. This endpoint returns a string response.
-    // @ResponseBody indicates that the returned String is the response body and should not be used to select a view.
-    @ResponseBody
-    @RequestMapping("/hello")
-    public String hello() {
-        // Delegates the call to a service method intended for admin users.
-        return ss.helloAdmin();
+    // Assure que cette méthode ne peut être accédée que par les utilisateurs ayant l'autorité 'ADMIN'.
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String helloAdmin() {
+        return "Hello";
     }
 
-    // Demonstrates passing a parameter to a service method, possibly for role or user-specific processing.
-    @ResponseBody
-    @RequestMapping("/aaa")
-    public String helloForUser() {
-        // The string "aaa" could represent a user ID or role, depending on implementation.
-        return ss.helloForUser("aaa");
+    // Cette méthode ne peut être accédée que si le userName fourni correspond au nom d'utilisateur
+    // de l'utilisateur actuellement authentifié. C'est utile pour les opérations spécifiques à un utilisateur,
+    // où un utilisateur ne devrait pouvoir agir que sur ses propres données.
+    @PreAuthorize("#userName == principal.username")
+    public String helloForUser(String userName) {
+        return "Hello " + userName;
     }
 
-    // This might be an example of method-level security implemented within the service, based on Spring Security annotations.
-    @ResponseBody
-    @RequestMapping("/code")
-    public String helloForUserByCode() {
-        // This method's security is likely enforced through method security annotations in the SecureService.
-        return ss.helloSecuredByCode();
+    // Démontre l'utilisation d'une expression de sécurité personnalisée.
+    // '@securityChecker' fait référence à un bean défini dans le contexte d'application Spring.
+    // La méthode 'isOk' de ce bean sera appelée avec le nom d'utilisateur de l'utilisateur actuellement authentifié
+    // comme argument. L'accès est accordé si la méthode retourne vrai.
+    // Cette approche est puissante pour mettre en œuvre des exigences de sécurité complexes.
+    @PreAuthorize("@securityChecker.isOk(principal.username)")
+    public String helloSecuredByCode() {
+        return "helloSecuredByCode is OK ";
     }
 
-    // Consider adding more endpoints as needed, ensuring each is properly secured either through
-    // Spring Security's URL-based security or method-level security annotations.
+    // Ajoutez ici d'autres méthodes sécurisées selon les besoins, en utilisant les annotations de Spring Security
+    // pour définir les exigences de sécurité précises pour chaque opération. Cela pourrait inclure la vérification
+    // des rôles des utilisateurs, l'évaluation des expressions impliquant des paramètres de méthode,
+    // ou l'invocation d'une logique de sécurité personnalisée à travers des beans gérés par Spring.
 
-    // It's also a good practice to handle exceptions gracefully in your controller, possibly by using
-    // @ExceptionHandler methods or a controller advice to handle common exceptions across controllers.
+    // Remarque : Pour que les expressions @PreAuthorize fonctionnent, assurez-vous que la sécurité des méthodes est
+    // activée dans votre configuration de sécurité Spring. Cela implique généralement d'ajouter l'annotation
+    // @EnableGlobalMethodSecurity à une classe de configuration avec les attributs appropriés définis
+    // (par exemple, prePostEnabled = true).
 }
