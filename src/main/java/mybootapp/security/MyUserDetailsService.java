@@ -9,35 +9,38 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+// Indique que cette classe est un service géré par Spring. 
+// Spring va créer une instance de cette classe et l'injecter là où elle est nécessaire.
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
     @Autowired
     private MemberRepository memberRepository;
 
-    // Assuming you have a PasswordEncoder bean configured in your security configuration
+    // Supposons que vous avez un bean PasswordEncoder configuré dans votre configuration de sécurité.
+    // Il est utilisé pour encoder les mots de passe.
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        // Recherche d'un membre par son adresse e-mail dans la base de données.
         Member member = memberRepository.findByEmail(email);
         if (member == null) {
+            // Si aucun membre n'est trouvé avec cet e-mail, une exception est lancée.
             throw new UsernameNotFoundException("Utilisateur non trouvé avec l'adresse e-mail: " + email);
         }
 
-        // Convert Member entity to Spring Security UserDetails
-        // Adjust roles and authorities as needed for your application
+        // Convertit l'entité Member en UserDetails de Spring Security.
+        // Ajustez les rôles et autorités selon les besoins de votre application.
         return org.springframework.security.core.userdetails.User
-                // Use ID as the username field for Spring Security contexts
+                // Utilisez l'ID comme champ de nom d'utilisateur pour les contextes de Spring Security.
                 .withUsername(String.valueOf(member.getId()))
-                // Ensure the password is encoded using the same PasswordEncoder as when storing passwords
+                // Assurez-vous que le mot de passe est encodé en utilisant le même PasswordEncoder que lors de l'enregistrement des mots de passe.
                 .password(passwordEncoder.encode(member.getPassword()))
-                .roles("USER") // Define roles as per your requirements. Prefix ROLE_ is automatically added.
-                // For finer-grained control, use authorities() instead of roles() for specific permissions.
+                .roles("USER") // Définissez les rôles selon vos besoins. Le préfixe ROLE_ est automatiquement ajouté.
+                // Pour un contrôle plus fin, utilisez authorities() au lieu de roles() pour des permissions spécifiques.
                 .build();
     }
 
-    // Optional: You might want to override additional methods or create a custom UserDetails class
-    // for storing additional properties of the Member entity that could be useful in your application.
 }
