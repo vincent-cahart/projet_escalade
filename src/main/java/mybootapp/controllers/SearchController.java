@@ -11,30 +11,30 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 /**
- * Controller for handling search functionality within the application.
+ * Contrôleur pour gérer la fonctionnalité de recherche au sein de l'application.
  */
 @Controller
 public class SearchController {
 
     @Autowired
-    private JpaDao jpaDao; // Injecting the DAO to access the database.
+    private JpaDao jpaDao; // Injection du DAO pour accéder à la base de données.
 
     /**
-     * Handles search requests and displays the results.
+     * Gère les requêtes de recherche et affiche les résultats.
      * 
-     * @param keyword The search keyword provided by the user.
-     * @param model   The Model object to pass data to the view.
-     * @return The name of the view to render.
+     * @param keyword Le mot-clé de recherche fourni par l'utilisateur.
+     * @param model   L'objet Model pour passer des données à la vue.
+     * @return Le nom de la vue à rendre.
      */
     @GetMapping("/search")
     public String search(@RequestParam String keyword, Model model) {
-        // Perform the search operation using the provided keyword.
+        // Réalise l'opération de recherche en utilisant le mot-clé fourni.
         List<Sortie> searchResults = jpaDao.searchSortiesParCriteres(keyword);
 
-        // Add the search results to the model, making them accessible in the view.
+        // Ajoute les résultats de la recherche au modèle, les rendant accessibles dans la vue.
         model.addAttribute("searchResults", searchResults);
 
-        // Return the name of the view to render the search results.
-        return "search"; // This should correspond to the name of your search results page template.
+        // Retourne le nom de la vue pour afficher les résultats de recherche.
+        return "search"; // Cela devrait correspondre au nom de votre template de page de résultats de recherche.
     }
 }
